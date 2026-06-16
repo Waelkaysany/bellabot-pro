@@ -28,7 +28,7 @@ MFRC522 mfrc522(SS_PIN, RST_PIN);
 const String JEBBAR_UID = "23 50 B5 1F";
 
 // ─── LED Configuration (Active-Low vs Active-High) ───────────────────────────
-const bool LEDS_ACTIVE_LOW = true; // Set to true if LEDs turn ON when pin is LOW
+const bool LEDS_ACTIVE_LOW = false; // Set to true if LEDs turn ON when pin is LOW
 
 // ─── RFID Status State (polled by Flutter app) ────────────────────────────────
 String lastScanStatus = "IDLE";   // "IDLE" | "SUCCESS" | "FAILED"
