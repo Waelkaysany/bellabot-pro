@@ -3,15 +3,27 @@
 #include <ESP32Servo.h>
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
+#include <SPI.h>
+#include <MFRC522.h>
 
 // Pin Definitions
-const int LED1_PIN = 18;
-const int LED2_PIN = 19;
-const int SERVO_PIN = 23;
-const int BUZZER_PIN = 25;
+const int LED1_PIN = 4;   // Green LED (Relocated to avoid SPI conflict)
+const int LED2_PIN = 2;   // Red LED (Relocated to avoid SPI conflict)
+const int SERVO_PIN = 13;  // SG90 Servo (Relocated to avoid SPI conflict)
+const int BUZZER_PIN = 25; // Buzzer (GPIO 25)
+
+// RFID RC522 Pins (SPI)
+const int RST_PIN = 14;    // Reset Pin
+const int SS_PIN = 5;      // Slave Select Pin
 
 // I2C LCD: address 0x27, 16 cols, 2 rows
 LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+// MFRC522 RFID instance
+MFRC522 mfrc522(SS_PIN, RST_PIN);
+
+// RFID Authorized Card Storage (Initialized to NONE)
+String authorizedUID = "";
 
 // Wi-Fi Credentials
 const char* ssid = "Hello";
@@ -344,6 +356,11 @@ void handleBirthday() {
 void setup() {
   Serial.begin(115200);
 
+  // SPI and RFID init
+  SPI.begin();
+  mfrc522.PCD_Init();
+  Serial.println("RFID MFRC522 Initialized");
+
   // Hardware init
   pinMode(LED1_PIN, OUTPUT);
   pinMode(LED2_PIN, OUTPUT);
@@ -412,9 +429,114 @@ void setup() {
   tone(BUZZER_PIN, 1047, 200); delay(250); noTone(BUZZER_PIN);
 }
 
+// ─── RFID Card Handler ────────────────────────────────────────────────────────
+void handleRFIDCard(String scannedUid) {
+  if (authorizedUID == "") {
+    // 1. Register the first card scanned as the Authorized Card
+    authorizedUID = scannedUid;
+    Serial.print("Registered Master Card: ");
+    Serial.println(authorizedUID);
+
+    // Confirmation sound
+    tone(BUZZER_PIN, 1000, 100); delay(150); noTone(BUZZER_PIN);
+    tone(BUZZER_PIN, 1200, 200); delay(250); noTone(BUZZER_PIN);
+
+    // Show confirmation on LCD
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Card Registered!");
+    lcd.setCursor(0, 1);
+    lcd.print(scannedUid);
+
+    // Blink Green LED twice
+    for (int i = 0; i < 2; i++) {
+      digitalWrite(LED1_PIN, HIGH); delay(200);
+      digitalWrite(LED1_PIN, LOW); delay(150);
+    }
+    delay(2000);
+    resetRobot();
+  } 
+  else {
+    // 2. Check if the scanned card matches the registered card
+    if (scannedUid == authorizedUID) {
+      // PAYMENT SUCCESSFUL
+      Serial.println("Payment Success!");
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Payment Success!");
+      lcd.setCursor(0, 1);
+      lcd.print("  Thank you! :D ");
+
+      // Turn on Green LED (success) and turn off Red LED
+      digitalWrite(LED1_PIN, HIGH);
+      digitalWrite(LED2_PIN, LOW);
+
+      // Happy Success Melody: C5(523) -> E5(659) -> G5(784) -> C6(1047)
+      int notes[] = {523, 659, 784, 1047};
+      int durations[] = {150, 150, 150, 350};
+      for (int i = 0; i < 4; i++) {
+        tone(BUZZER_PIN, notes[i], durations[i]);
+        delay(durations[i] + 50);
+        noTone(BUZZER_PIN);
+      }
+
+      delay(2000);
+      digitalWrite(LED1_PIN, LOW);
+      resetRobot();
+    } 
+    else {
+      // PAYMENT FAILED (Unrecognized card)
+      Serial.println("Payment Failed! Unrecognized card.");
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Payment Failed!");
+      lcd.setCursor(0, 1);
+      lcd.print(" Unsuccessful  ");
+
+      // Turn on Red LED (fail) and turn off Green LED
+      digitalWrite(LED2_PIN, HIGH);
+      digitalWrite(LED1_PIN, LOW);
+
+      // Bad noise / low frequency buzz (147 Hz)
+      tone(BUZZER_PIN, 147, 800);
+      delay(900);
+      noTone(BUZZER_PIN);
+
+      // Flash Red LED a couple of times
+      for (int i = 0; i < 3; i++) {
+        digitalWrite(LED2_PIN, LOW); delay(150);
+        digitalWrite(LED2_PIN, HIGH); delay(150);
+      }
+      digitalWrite(LED2_PIN, LOW);
+
+      delay(1000);
+      resetRobot();
+    }
+  }
+}
+
 // ─── Loop ─────────────────────────────────────────────────────────────────────
 void loop() {
   server.handleClient();
+
+  // MFRC522 RFID Scanner Poll
+  if (mfrc522.PCD_IsNewCardPresent() && mfrc522.PCD_ReadCardSerial()) {
+    // Read scanned card UID
+    String uidStr = "";
+    for (byte i = 0; i < mfrc522.uid.size; i++) {
+      uidStr += String(mfrc522.uid.uidByte[i] < 0x10 ? "0" : "");
+      uidStr += String(mfrc522.uid.uidByte[i], HEX);
+      if (i < mfrc522.uid.size - 1) uidStr += " ";
+    }
+    uidStr.toUpperCase();
+
+    // Handle payment logic
+    handleRFIDCard(uidStr);
+
+    // Halt PICC (Physical IC Card) and encryption
+    mfrc522.PICC_HaltA();
+    mfrc522.PCD_StopCrypto1();
+  }
 
   // Serial commands (USB mode)
   if (Serial.available() > 0) {
@@ -425,6 +547,7 @@ void loop() {
     else if (input.startsWith("S:"))   { myServo.write(input.substring(2).toInt()); Serial.println("SERVO_OK"); }
     else if (input == "WAITER")        { runWaiterSequence(); }
     else if (input == "RESET")         { resetRobot(); }
+    else if (input == "CLEAR_CARD")    { authorizedUID = ""; Serial.println("CARD_CLEARED"); }
   }
   delay(2);
 }
