@@ -3,7 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../core/app_colors.dart';
 
-enum RobotMode { delivery, cruise, birthday, dishReturn, adDisplay, iotControl }
+enum RobotMode { delivery, cruise, birthday, dishReturn, adDisplay, iotControl, pay }
 
 class ModeNavigation extends StatelessWidget {
   final int selectedIndex;
@@ -16,12 +16,13 @@ class ModeNavigation extends StatelessWidget {
   });
 
   static const _modes = [
-    (icon: Icons.delivery_dining_rounded, label: 'Delivery'),
+    (icon: Icons.delivery_dining_rounded,  label: 'Delivery'),
     (icon: Icons.electric_rickshaw_rounded, label: 'Cruise'),
-    (icon: Icons.cake_rounded, label: 'Birthday'),
-    (icon: Icons.replay_rounded, label: 'Return'),
-    (icon: Icons.campaign_rounded, label: 'Display'),
-    (icon: Icons.developer_board_rounded, label: 'IoT'),
+    (icon: Icons.cake_rounded,              label: 'Birthday'),
+    (icon: Icons.replay_rounded,            label: 'Return'),
+    (icon: Icons.campaign_rounded,          label: 'Display'),
+    (icon: Icons.developer_board_rounded,   label: 'IoT'),
+    (icon: Icons.contactless_rounded,       label: 'Pay'),
   ];
 
   @override

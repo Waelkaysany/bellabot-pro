@@ -11,6 +11,7 @@ import 'birthday_page.dart';
 import 'dish_return_page.dart';
 import 'ad_display_page.dart';
 import 'iot_control_page.dart';
+import 'payment_page.dart';
 
 class HomeDashboard extends StatefulWidget {
   const HomeDashboard({super.key});
@@ -34,6 +35,7 @@ class _HomeDashboardState extends State<HomeDashboard>
     'Dish Return',
     'Ad Display',
     'IoT Control',
+    'Payment Terminal',
   ];
 
   static const _pageSubtitles = [
@@ -43,6 +45,7 @@ class _HomeDashboardState extends State<HomeDashboard>
     'Return dishes to kitchen',
     'Promote your specials',
     'Control ESP32 devices',
+    'RFID contactless payments',
   ];
 
   static const _pageIcons = [
@@ -52,6 +55,7 @@ class _HomeDashboardState extends State<HomeDashboard>
     Icons.replay_rounded,
     Icons.campaign_rounded,
     Icons.developer_board_rounded,
+    Icons.contactless_rounded,
   ];
 
   final _pages = const [
@@ -61,6 +65,7 @@ class _HomeDashboardState extends State<HomeDashboard>
     DishReturnPage(),
     AdDisplayPage(),
     IotControlPage(),
+    PaymentPage(),
   ];
 
   @override
@@ -171,6 +176,7 @@ class _PageHeader extends StatelessWidget {
     AppColors.safetyOrange,
     AppColors.puduBlue,
     Colors.teal,
+    Color(0xFF00E676),
   ];
 
   @override
@@ -243,6 +249,7 @@ class _AmbientGlowPainter extends CustomPainter {
     AppColors.safetyOrange,
     AppColors.puduBlue,
     Colors.teal,
+    Color(0xFF00E676),
   ];
 
   @override

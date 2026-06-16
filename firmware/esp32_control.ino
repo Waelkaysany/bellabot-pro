@@ -6,39 +6,48 @@
 #include <SPI.h>
 #include <MFRC522.h>
 
-// Pin Definitions
-const int LED1_PIN = 4;   // Green LED (Relocated to avoid SPI conflict)
-const int LED2_PIN = 2;   // Red LED (Relocated to avoid SPI conflict)
-const int SERVO_PIN = 13;  // SG90 Servo (Relocated to avoid SPI conflict)
-const int BUZZER_PIN = 25; // Buzzer (GPIO 25)
+// ─── Pin Definitions ──────────────────────────────────────────────────────────
+const int LED1_PIN   = 4;   // Green LED
+const int LED2_PIN   = 2;   // Red LED
+const int SERVO_PIN  = 13;  // SG90 Servo
+const int BUZZER_PIN = 25;  // Buzzer
 
-// RFID RC522 Pins (SPI)
-const int RST_PIN = 14;    // Reset Pin
-const int SS_PIN = 5;      // Slave Select Pin
+// ─── RFID RC522 Pins (SPI) ────────────────────────────────────────────────────
+const int RST_PIN = 14;
+const int SS_PIN  = 5;
 
-// I2C LCD: address 0x27, 16 cols, 2 rows
+// ─── I2C LCD: address 0x27, 16 cols, 2 rows ───────────────────────────────────
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
-// MFRC522 RFID instance
+// ─── MFRC522 RFID instance ────────────────────────────────────────────────────
 MFRC522 mfrc522(SS_PIN, RST_PIN);
 
-// RFID Authorized Card Storage (Initialized to NONE)
-String authorizedUID = "";
+// ─── Hardcoded Payment Card ───────────────────────────────────────────────────
+// Card UID: 23 50 B5 1F  →  Jebbar (APPROVED)
+// All other cards        →  DECLINED
+const String JEBBAR_UID = "23 50 B5 1F";
 
-// Wi-Fi Credentials
-const char* ssid = "Hello";
-const char* password = "wael0000";
+// ─── RFID Status State (polled by Flutter app) ────────────────────────────────
+String lastScanStatus = "IDLE";   // "IDLE" | "SUCCESS" | "FAILED"
+String lastScanUID    = "";
+String lastScanName   = "";
 
-// Fallback Access Point Settings
-const char* fallbackSsid = "ESP32-Control-Hub";
+// ─── Wi-Fi Credentials ────────────────────────────────────────────────────────
+const char* ssid             = "Hello";
+const char* password         = "wael0000";
+const char* fallbackSsid     = "ESP32-Control-Hub";
 const char* fallbackPassword = "password123";
 
 WebServer server(80);
 Servo myServo;
 
-// ─── Helper: Play a cheerful 3-note melody ───────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+//  MUSIC HELPERS
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ─── Happy 3-note melody ──────────────────────────────────────────────────────
 void playHappyMelody() {
-  int notes[] = {523, 659, 784}; // C5, E5, G5
+  int notes[]     = {523, 659, 784};
   int durations[] = {150, 150, 300};
   for (int i = 0; i < 3; i++) {
     tone(BUZZER_PIN, notes[i], durations[i]);
@@ -47,16 +56,35 @@ void playHappyMelody() {
   }
 }
 
-// ─── Helper: Full "Happy Birthday to You" song ───────────────────────────────
+// ─── Payment SUCCESS chime — soaring 6-note fanfare ──────────────────────────
+void playPaymentSuccessChime() {
+  // E5 → G5 → C6 → E6 → G6 → C7   (rising triumphant fanfare)
+  int notes[]     = {659, 784, 1047, 1319, 1568, 2093};
+  int durations[] = {120, 120,  180,  180,  220,   500};
+  for (int i = 0; i < 6; i++) {
+    tone(BUZZER_PIN, notes[i], durations[i]);
+    delay(durations[i] + 40);
+    noTone(BUZZER_PIN);
+  }
+}
+
+// ─── Payment DECLINE buzz — low dramatic descending drone ─────────────────────
+void playPaymentDeclineBuzz() {
+  // Two low descending groans, then a short flat reject beep
+  tone(BUZZER_PIN, 200, 450); delay(500); noTone(BUZZER_PIN);
+  delay(80);
+  tone(BUZZER_PIN, 160, 450); delay(500); noTone(BUZZER_PIN);
+  delay(80);
+  tone(BUZZER_PIN, 120, 700); delay(750); noTone(BUZZER_PIN);
+}
+
+// ─── Full Happy Birthday song ─────────────────────────────────────────────────
 void playBirthdaySong() {
-  // Notes: C4=262, D4=294, E4=330, F4=349, G4=392, A4=440, B4=494
-  //        C5=523, D5=587, E5=659, F5=698, G5=784, A5=880
-  // Rhythm: S=short(300ms), M=medium(400ms), L=long(600ms), XL=very long(800ms)
   int melody[] = {
-    262,262,294,262,349,330,   // Hap-py Birth-day to you
-    262,262,294,262,392,349,   // Hap-py Birth-day to you
-    262,262,523,440,349,330,294, // Hap-py Birth-day dear [name]
-    466,466,440,349,392,349    // Hap-py Birth-day to you!
+    262,262,294,262,349,330,
+    262,262,294,262,392,349,
+    262,262,523,440,349,330,294,
+    466,466,440,349,392,349
   };
   int durations[] = {
     300,300,600,600,600,800,
@@ -72,14 +100,62 @@ void playBirthdaySong() {
   }
 }
 
-// ─── Birthday Sequence ───────────────────────────────────────────────────────
+// ─── Warm goodbye melody ──────────────────────────────────────────────────────
+void playGoodbyeMelody() {
+  int notes[]     = {784, 659, 523, 392};
+  int durations[] = {180, 180, 180, 400};
+  for (int i = 0; i < 4; i++) {
+    tone(BUZZER_PIN, notes[i], durations[i]);
+    delay(durations[i] + 60);
+    noTone(BUZZER_PIN);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  LED HELPERS
+// ══════════════════════════════════════════════════════════════════════════════
+
+void blinkEyes() {
+  for (int i = 0; i < 2; i++) {
+    digitalWrite(LED1_PIN, HIGH);
+    digitalWrite(LED2_PIN, HIGH);
+    delay(250);
+    digitalWrite(LED1_PIN, LOW);
+    digitalWrite(LED2_PIN, LOW);
+    delay(200);
+  }
+}
+
+// Green LED pulses N times (success feel)
+void pulseGreen(int times) {
+  for (int i = 0; i < times; i++) {
+    digitalWrite(LED1_PIN, HIGH);
+    delay(180);
+    digitalWrite(LED1_PIN, LOW);
+    delay(120);
+  }
+}
+
+// Red LED flashes N times (alarm feel)
+void flashRed(int times) {
+  for (int i = 0; i < times; i++) {
+    digitalWrite(LED2_PIN, HIGH);
+    delay(100);
+    digitalWrite(LED2_PIN, LOW);
+    delay(80);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  ROBOT SEQUENCES
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ─── Birthday Sequence ────────────────────────────────────────────────────────
 void runBirthdaySequence(String guestName) {
-  // 1. Show name on LCD
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print(" Happy Birthday");
   lcd.setCursor(0, 1);
-  // Centre the name on 16 chars
   String line2 = guestName.length() > 0 ? guestName + "! :D" : "To You! :D";
   if (line2.length() > 16) line2 = line2.substring(0, 16);
   int pad = (16 - line2.length()) / 2;
@@ -88,11 +164,6 @@ void runBirthdaySequence(String guestName) {
   paddedLine += line2;
   lcd.print(paddedLine);
 
-  // 2. Play full Happy Birthday song while LEDs party-blink
-  //    Run melody in parallel with LED blinking using millis trick
-  unsigned long songStart = millis();
-
-  // Notes & durations (same as playBirthdaySong)
   int melody[] = {
     262,262,294,262,349,330,
     262,262,294,262,392,349,
@@ -111,23 +182,15 @@ void runBirthdaySequence(String guestName) {
   unsigned long ledToggle = millis();
   int noteIndex = 0;
   unsigned long noteEnd = millis();
-
-  // Play the song once (~13 s with gaps), blinking LEDs throughout
-  unsigned long totalTime = 10000UL; // 10 seconds minimum
-  unsigned long endTime = millis() + totalTime;
-
-  noteIndex = 0;
-  noteEnd = millis();
+  unsigned long endTime = millis() + 10000UL;
 
   while (millis() < endTime || noteIndex < count) {
-    // LED blink every 200ms
     if (millis() - ledToggle >= 200) {
       ledState = !ledState;
       digitalWrite(LED1_PIN, ledState ? HIGH : LOW);
-      digitalWrite(LED2_PIN, ledState ? LOW  : HIGH); // alternate!
+      digitalWrite(LED2_PIN, ledState ? LOW  : HIGH);
       ledToggle = millis();
     }
-    // Play next note when previous has finished
     if (noteIndex < count && millis() >= noteEnd) {
       tone(BUZZER_PIN, melody[noteIndex], dur[noteIndex]);
       noteEnd = millis() + dur[noteIndex] + 60;
@@ -137,85 +200,41 @@ void runBirthdaySequence(String guestName) {
   }
   noTone(BUZZER_PIN);
 
-  // 3. Keep LEDs on solid for 1 more second
   digitalWrite(LED1_PIN, HIGH);
   digitalWrite(LED2_PIN, HIGH);
   delay(1000);
-
-  // 4. Return eyes off, keep LCD message
   digitalWrite(LED1_PIN, LOW);
   digitalWrite(LED2_PIN, LOW);
 }
 
-// ─── Helper: Blink both LEDs twice ───────────────────────────────────────────
-void blinkEyes() {
-  for (int i = 0; i < 2; i++) {
-    digitalWrite(LED1_PIN, HIGH);
-    digitalWrite(LED2_PIN, HIGH);
-    delay(250);
-    digitalWrite(LED1_PIN, LOW);
-    digitalWrite(LED2_PIN, LOW);
-    delay(200);
-  }
-}
-
-// ─── Waiter Sequence ─────────────────────────────────────────────────────────
+// ─── Waiter Sequence ──────────────────────────────────────────────────────────
 void runWaiterSequence() {
-  // 1. Move arm down (servo to 0°) like holding a tray
   myServo.write(0);
-
-  // 2. Show "Hello there!" on LCD row 0
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("  Hello there! ");
   lcd.setCursor(0, 1);
   lcd.print(" Welcome!      ");
-
-  // 3. Blink the eyes
   blinkEyes();
-
-  // 4. Play happy melody
   playHappyMelody();
-
   delay(1500);
-
-  // 5. Change message to "Here is your food!"
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print(" Here is your  ");
   lcd.setCursor(0, 1);
   lcd.print("   food!  :)   ");
-
-  // 6. Move arm up (serve position 90°)
   myServo.write(90);
-
-  // 7. Both eyes stay on
   digitalWrite(LED1_PIN, HIGH);
   digitalWrite(LED2_PIN, HIGH);
 }
 
-// ─── Helper: Play a warm goodbye melody ─────────────────────────────────────
-void playGoodbyeMelody() {
-  // Warm descending: G5 → E5 → C5 → G4  (friendly wave goodbye)
-  int notes[]     = {784, 659, 523, 392};
-  int durations[] = {180, 180, 180, 400};
-  for (int i = 0; i < 4; i++) {
-    tone(BUZZER_PIN, notes[i], durations[i]);
-    delay(durations[i] + 60);
-    noTone(BUZZER_PIN);
-  }
-}
-
-// ─── Reset sequence ───────────────────────────────────────────────────────────
+// ─── Reset ────────────────────────────────────────────────────────────────────
 void resetRobot() {
-  // 1. Show goodbye message
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("   Goodbye!    ");
   lcd.setCursor(0, 1);
   lcd.print(" See you soon! ");
-
-  // 2. Blink eyes as a farewell wave
   for (int i = 0; i < 2; i++) {
     digitalWrite(LED1_PIN, HIGH);
     digitalWrite(LED2_PIN, HIGH);
@@ -224,13 +243,8 @@ void resetRobot() {
     digitalWrite(LED2_PIN, LOW);
     delay(200);
   }
-
-  // 3. Play goodbye melody
   playGoodbyeMelody();
-
   delay(1000);
-
-  // 4. Return to standby
   myServo.write(0);
   digitalWrite(LED1_PIN, LOW);
   digitalWrite(LED2_PIN, LOW);
@@ -241,7 +255,101 @@ void resetRobot() {
   lcd.print("   Standing by ");
 }
 
-// ─── HTML Page ────────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+//  RFID PAYMENT HANDLER
+// ══════════════════════════════════════════════════════════════════════════════
+void handleRFIDCard(String scannedUid) {
+  Serial.print("Card scanned: ");
+  Serial.println(scannedUid);
+
+  if (scannedUid == JEBBAR_UID) {
+    // ── JEBBAR — PAYMENT APPROVED ─────────────────────────────────────────
+    Serial.println(">>> PAYMENT APPROVED — Jebbar");
+
+    lastScanStatus = "SUCCESS";
+    lastScanUID    = scannedUid;
+    lastScanName   = "Jebbar";
+
+    // Phase 1: Welcome
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Welcome Jebbar!");
+    lcd.setCursor(0, 1);
+    lcd.print("Processing...  ");
+
+    // Play fanfare chime
+    playPaymentSuccessChime();
+
+    // Phase 2: Approved confirmation
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("  APPROVED  ✓  ");
+    lcd.setCursor(0, 1);
+    lcd.print(" Charged $12.50");
+
+    // Green LED pulse x4
+    pulseGreen(4);
+
+    delay(800);
+
+    // Phase 3: Thank you
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print(" Thank you,    ");
+    lcd.setCursor(0, 1);
+    lcd.print(" Jebbar!  :)   ");
+
+    // Solid green for 2 seconds
+    digitalWrite(LED1_PIN, HIGH);
+    delay(2000);
+    digitalWrite(LED1_PIN, LOW);
+
+    delay(500);
+    resetRobot();
+
+  } else {
+    // ── UNKNOWN CARD — PAYMENT DECLINED ───────────────────────────────────
+    Serial.print(">>> PAYMENT DECLINED — unknown card: ");
+    Serial.println(scannedUid);
+
+    lastScanStatus = "FAILED";
+    lastScanUID    = scannedUid;
+    lastScanName   = "Anass";
+
+    // Phase 1: Declined alert
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("  DECLINED  X  ");
+    lcd.setCursor(0, 1);
+    lcd.print(" Sorry, Anass! ");
+
+    // Red LED ON solid
+    digitalWrite(LED2_PIN, HIGH);
+
+    // Play decline buzz
+    playPaymentDeclineBuzz();
+
+    // Flash red x5 rapidly
+    flashRed(5);
+    digitalWrite(LED2_PIN, LOW);
+
+    delay(600);
+
+    // Phase 2: Instruction
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Payment Failed ");
+    lcd.setCursor(0, 1);
+    lcd.print("Contact Staff  ");
+
+    delay(2000);
+    resetRobot();
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  HTML PAGE (built-in web interface)
+// ══════════════════════════════════════════════════════════════════════════════
 const char htmlPage[] PROGMEM = R"rawhtml(
 <!DOCTYPE html>
 <html lang="en">
@@ -282,15 +390,15 @@ const char htmlPage[] PROGMEM = R"rawhtml(
   <h1>BellaBot Pro</h1>
   <div class="sub">ROBOT CONTROL INTERFACE</div>
   <div class="row">
-    <div><div class="label">Left Eye</div><div class="desc">Green LED · GPIO 18</div></div>
+    <div><div class="label">Left Eye</div><div class="desc">Green LED · GPIO 4</div></div>
     <label class="switch"><input type="checkbox" id="led1" onchange="sendCmd('led1/'+(this.checked?'on':'off'))"><span class="slider"></span></label>
   </div>
   <div class="row">
-    <div><div class="label">Right Eye</div><div class="desc">Red LED · GPIO 19</div></div>
+    <div><div class="label">Right Eye</div><div class="desc">Red LED · GPIO 2</div></div>
     <label class="switch"><input type="checkbox" id="led2" onchange="sendCmd('led2/'+(this.checked?'on':'off'))"><span class="slider"></span></label>
   </div>
   <div class="row">
-    <div><div class="label">Arm (Servo)</div><div class="desc">SG90 · GPIO 23</div></div>
+    <div><div class="label">Arm (Servo)</div><div class="desc">SG90 · GPIO 13</div></div>
     <label class="switch"><input type="checkbox" id="motor" onchange="sendCmd('motor/'+(this.checked?'on':'off'))"><span class="slider"></span></label>
   </div>
   <button class="waiter-btn" onclick="sendCmd('waiter')">🍽️ Cheerful Waiter Mode</button>
@@ -303,7 +411,9 @@ const char htmlPage[] PROGMEM = R"rawhtml(
 </html>
 )rawhtml";
 
-// ─── HTTP Handlers ────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+//  HTTP HANDLERS
+// ══════════════════════════════════════════════════════════════════════════════
 void handleRoot()     { server.sendHeader("Access-Control-Allow-Origin","*"); server.send(200,"text/html",htmlPage); }
 void handleLed1On()   { server.sendHeader("Access-Control-Allow-Origin","*"); digitalWrite(LED1_PIN,HIGH); server.send(200,"text/plain","OK"); }
 void handleLed1Off()  { server.sendHeader("Access-Control-Allow-Origin","*"); digitalWrite(LED1_PIN,LOW);  server.send(200,"text/plain","OK"); }
@@ -335,7 +445,7 @@ void handleServo() {
 void handleWaiter() {
   server.sendHeader("Access-Control-Allow-Origin","*");
   server.send(200,"text/plain","OK");
-  runWaiterSequence(); // Run after responding so app doesn't time out
+  runWaiterSequence();
 }
 
 void handleReset() {
@@ -349,19 +459,44 @@ void handleBirthday() {
   String name = "";
   if (server.hasArg("name")) name = server.arg("name");
   server.send(200,"text/plain","OK");
-  runBirthdaySequence(name); // runs AFTER response is sent so app won't time out
+  runBirthdaySequence(name);
 }
 
-// ─── Setup ────────────────────────────────────────────────────────────────────
+// ─── GET /rfid/status ─────────────────────────────────────────────────────────
+// Returns JSON: {"status":"SUCCESS","uid":"23 50 B5 1F","name":"Jebbar"}
+void handleRfidStatus() {
+  server.sendHeader("Access-Control-Allow-Origin","*");
+  server.sendHeader("Content-Type","application/json");
+  String json = "{";
+  json += "\"status\":\"" + lastScanStatus + "\",";
+  json += "\"uid\":\"" + lastScanUID + "\",";
+  json += "\"name\":\"" + lastScanName + "\"";
+  json += "}";
+  server.send(200, "application/json", json);
+}
+
+// ─── GET /rfid/clear ─────────────────────────────────────────────────────────
+// Resets state back to IDLE so the app stops showing overlay
+void handleRfidClear() {
+  server.sendHeader("Access-Control-Allow-Origin","*");
+  lastScanStatus = "IDLE";
+  lastScanUID    = "";
+  lastScanName   = "";
+  server.send(200,"text/plain","CLEARED");
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  SETUP
+// ══════════════════════════════════════════════════════════════════════════════
 void setup() {
   Serial.begin(115200);
 
-  // SPI and RFID init
   SPI.begin();
   mfrc522.PCD_Init();
   Serial.println("RFID MFRC522 Initialized");
+  Serial.print("Authorized card (Jebbar): ");
+  Serial.println(JEBBAR_UID);
 
-  // Hardware init
   pinMode(LED1_PIN, OUTPUT);
   pinMode(LED2_PIN, OUTPUT);
   pinMode(BUZZER_PIN, OUTPUT);
@@ -371,7 +506,6 @@ void setup() {
   myServo.attach(SERVO_PIN);
   myServo.write(0);
 
-  // LCD init
   lcd.init();
   lcd.backlight();
   lcd.setCursor(0, 0);
@@ -379,10 +513,8 @@ void setup() {
   lcd.setCursor(0, 1);
   lcd.print("  Booting...   ");
 
-  // Wi-Fi
   Serial.print("Connecting to Wi-Fi: ");
   Serial.println(ssid);
-
   WiFi.begin(ssid, password);
   int attempts = 0;
   while (WiFi.status() != WL_CONNECTED && attempts < 20) {
@@ -407,7 +539,7 @@ void setup() {
     lcd.print("  AP Mode      ");
   }
 
-  // Routes
+  // ─── Routes ────────────────────────────────────────────────────────────────
   server.on("/",            handleRoot);
   server.on("/led",         handleLED);
   server.on("/servo",       handleServo);
@@ -420,108 +552,25 @@ void setup() {
   server.on("/waiter",      handleWaiter);
   server.on("/reset",       handleReset);
   server.on("/birthday",    handleBirthday);
+  server.on("/rfid/status", handleRfidStatus);
+  server.on("/rfid/clear",  handleRfidClear);
 
   server.begin();
   Serial.println("HTTP Server started");
 
   // Startup beep
-  tone(BUZZER_PIN, 880, 100); delay(150); noTone(BUZZER_PIN);
+  tone(BUZZER_PIN, 880, 100);  delay(150); noTone(BUZZER_PIN);
   tone(BUZZER_PIN, 1047, 200); delay(250); noTone(BUZZER_PIN);
 }
 
-// ─── RFID Card Handler ────────────────────────────────────────────────────────
-void handleRFIDCard(String scannedUid) {
-  if (authorizedUID == "") {
-    // 1. Register the first card scanned as the Authorized Card
-    authorizedUID = scannedUid;
-    Serial.print("Registered Master Card: ");
-    Serial.println(authorizedUID);
-
-    // Confirmation sound
-    tone(BUZZER_PIN, 1000, 100); delay(150); noTone(BUZZER_PIN);
-    tone(BUZZER_PIN, 1200, 200); delay(250); noTone(BUZZER_PIN);
-
-    // Show confirmation on LCD
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print("Card Registered!");
-    lcd.setCursor(0, 1);
-    lcd.print(scannedUid);
-
-    // Blink Green LED twice
-    for (int i = 0; i < 2; i++) {
-      digitalWrite(LED1_PIN, HIGH); delay(200);
-      digitalWrite(LED1_PIN, LOW); delay(150);
-    }
-    delay(2000);
-    resetRobot();
-  } 
-  else {
-    // 2. Check if the scanned card matches the registered card
-    if (scannedUid == authorizedUID) {
-      // PAYMENT SUCCESSFUL
-      Serial.println("Payment Success!");
-      lcd.clear();
-      lcd.setCursor(0, 0);
-      lcd.print("Payment Success!");
-      lcd.setCursor(0, 1);
-      lcd.print("  Thank you! :D ");
-
-      // Turn on Green LED (success) and turn off Red LED
-      digitalWrite(LED1_PIN, HIGH);
-      digitalWrite(LED2_PIN, LOW);
-
-      // Happy Success Melody: C5(523) -> E5(659) -> G5(784) -> C6(1047)
-      int notes[] = {523, 659, 784, 1047};
-      int durations[] = {150, 150, 150, 350};
-      for (int i = 0; i < 4; i++) {
-        tone(BUZZER_PIN, notes[i], durations[i]);
-        delay(durations[i] + 50);
-        noTone(BUZZER_PIN);
-      }
-
-      delay(2000);
-      digitalWrite(LED1_PIN, LOW);
-      resetRobot();
-    } 
-    else {
-      // PAYMENT FAILED (Unrecognized card)
-      Serial.println("Payment Failed! Unrecognized card.");
-      lcd.clear();
-      lcd.setCursor(0, 0);
-      lcd.print("Payment Failed!");
-      lcd.setCursor(0, 1);
-      lcd.print(" Unsuccessful  ");
-
-      // Turn on Red LED (fail) and turn off Green LED
-      digitalWrite(LED2_PIN, HIGH);
-      digitalWrite(LED1_PIN, LOW);
-
-      // Bad noise / low frequency buzz (147 Hz)
-      tone(BUZZER_PIN, 147, 800);
-      delay(900);
-      noTone(BUZZER_PIN);
-
-      // Flash Red LED a couple of times
-      for (int i = 0; i < 3; i++) {
-        digitalWrite(LED2_PIN, LOW); delay(150);
-        digitalWrite(LED2_PIN, HIGH); delay(150);
-      }
-      digitalWrite(LED2_PIN, LOW);
-
-      delay(1000);
-      resetRobot();
-    }
-  }
-}
-
-// ─── Loop ─────────────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+//  LOOP
+// ══════════════════════════════════════════════════════════════════════════════
 void loop() {
   server.handleClient();
 
-  // MFRC522 RFID Scanner Poll
-  if (mfrc522.PCD_IsNewCardPresent() && mfrc522.PCD_ReadCardSerial()) {
-    // Read scanned card UID
+  // ─── RFID Poll ─────────────────────────────────────────────────────────────
+  if (mfrc522.PICC_IsNewCardPresent() && mfrc522.PICC_ReadCardSerial()) {
     String uidStr = "";
     for (byte i = 0; i < mfrc522.uid.size; i++) {
       uidStr += String(mfrc522.uid.uidByte[i] < 0x10 ? "0" : "");
@@ -530,24 +579,22 @@ void loop() {
     }
     uidStr.toUpperCase();
 
-    // Handle payment logic
     handleRFIDCard(uidStr);
 
-    // Halt PICC (Physical IC Card) and encryption
     mfrc522.PICC_HaltA();
     mfrc522.PCD_StopCrypto1();
   }
 
-  // Serial commands (USB mode)
+  // ─── Serial commands ────────────────────────────────────────────────────────
   if (Serial.available() > 0) {
     String input = Serial.readStringUntil('\n');
     input.trim();
-    if (input.startsWith("L1:"))      { digitalWrite(LED1_PIN, input.substring(3).toInt()); Serial.println("LED1_OK"); }
-    else if (input.startsWith("L2:"))  { digitalWrite(LED2_PIN, input.substring(3).toInt()); Serial.println("LED2_OK"); }
-    else if (input.startsWith("S:"))   { myServo.write(input.substring(2).toInt()); Serial.println("SERVO_OK"); }
-    else if (input == "WAITER")        { runWaiterSequence(); }
-    else if (input == "RESET")         { resetRobot(); }
-    else if (input == "CLEAR_CARD")    { authorizedUID = ""; Serial.println("CARD_CLEARED"); }
+    if      (input.startsWith("L1:")) { digitalWrite(LED1_PIN, input.substring(3).toInt()); Serial.println("LED1_OK"); }
+    else if (input.startsWith("L2:")) { digitalWrite(LED2_PIN, input.substring(3).toInt()); Serial.println("LED2_OK"); }
+    else if (input.startsWith("S:"))  { myServo.write(input.substring(2).toInt());           Serial.println("SERVO_OK"); }
+    else if (input == "WAITER")       { runWaiterSequence(); }
+    else if (input == "RESET")        { resetRobot(); }
   }
+
   delay(2);
 }
