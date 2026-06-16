@@ -27,10 +27,39 @@ MFRC522 mfrc522(SS_PIN, RST_PIN);
 // All other cards        →  DECLINED
 const String JEBBAR_UID = "23 50 B5 1F";
 
+// ─── LED Configuration (Active-Low vs Active-High) ───────────────────────────
+const bool LEDS_ACTIVE_LOW = true; // Set to true if LEDs turn ON when pin is LOW
+
 // ─── RFID Status State (polled by Flutter app) ────────────────────────────────
 String lastScanStatus = "IDLE";   // "IDLE" | "SUCCESS" | "FAILED"
 String lastScanUID    = "";
 String lastScanName   = "";
+
+// ─── Custom LED Control helper ───────────────────────────────────────────────
+void setLed(int pin, bool turnOn) {
+  if (LEDS_ACTIVE_LOW) {
+    digitalWrite(pin, turnOn ? LOW : HIGH);
+  } else {
+    digitalWrite(pin, turnOn ? HIGH : LOW);
+  }
+}
+
+// ─── Custom Tone Generator (Bit-Banged to avoid LEDC / Servo conflicts) ───────
+void playTone(int pin, int frequency, int durationMs) {
+  if (frequency <= 0) {
+    delay(durationMs);
+    return;
+  }
+  long halfPeriod = 500000L / frequency;
+  long cycles = (long)durationMs * frequency / 1000L;
+  pinMode(pin, OUTPUT);
+  for (long i = 0; i < cycles; i++) {
+    digitalWrite(pin, HIGH);
+    delayMicroseconds(halfPeriod);
+    digitalWrite(pin, LOW);
+    delayMicroseconds(halfPeriod);
+  }
+}
 
 // ─── Wi-Fi Credentials ────────────────────────────────────────────────────────
 const char* ssid             = "Hello";
@@ -50,9 +79,8 @@ void playHappyMelody() {
   int notes[]     = {523, 659, 784};
   int durations[] = {150, 150, 300};
   for (int i = 0; i < 3; i++) {
-    tone(BUZZER_PIN, notes[i], durations[i]);
-    delay(durations[i] + 50);
-    noTone(BUZZER_PIN);
+    playTone(BUZZER_PIN, notes[i], durations[i]);
+    delay(50);
   }
 }
 
@@ -62,20 +90,19 @@ void playPaymentSuccessChime() {
   int notes[]     = {659, 784, 1047, 1319, 1568, 2093};
   int durations[] = {120, 120,  180,  180,  220,   500};
   for (int i = 0; i < 6; i++) {
-    tone(BUZZER_PIN, notes[i], durations[i]);
-    delay(durations[i] + 40);
-    noTone(BUZZER_PIN);
+    playTone(BUZZER_PIN, notes[i], durations[i]);
+    delay(40);
   }
 }
 
 // ─── Payment DECLINE buzz — low dramatic descending drone ─────────────────────
 void playPaymentDeclineBuzz() {
   // Two low descending groans, then a short flat reject beep
-  tone(BUZZER_PIN, 200, 450); delay(500); noTone(BUZZER_PIN);
+  playTone(BUZZER_PIN, 200, 450);
   delay(80);
-  tone(BUZZER_PIN, 160, 450); delay(500); noTone(BUZZER_PIN);
+  playTone(BUZZER_PIN, 160, 450);
   delay(80);
-  tone(BUZZER_PIN, 120, 700); delay(750); noTone(BUZZER_PIN);
+  playTone(BUZZER_PIN, 120, 700);
 }
 
 // ─── Full Happy Birthday song ─────────────────────────────────────────────────
@@ -94,9 +121,8 @@ void playBirthdaySong() {
   };
   int count = sizeof(melody) / sizeof(melody[0]);
   for (int i = 0; i < count; i++) {
-    tone(BUZZER_PIN, melody[i], durations[i]);
-    delay(durations[i] + 60);
-    noTone(BUZZER_PIN);
+    playTone(BUZZER_PIN, melody[i], durations[i]);
+    delay(60);
   }
 }
 
@@ -105,9 +131,8 @@ void playGoodbyeMelody() {
   int notes[]     = {784, 659, 523, 392};
   int durations[] = {180, 180, 180, 400};
   for (int i = 0; i < 4; i++) {
-    tone(BUZZER_PIN, notes[i], durations[i]);
-    delay(durations[i] + 60);
-    noTone(BUZZER_PIN);
+    playTone(BUZZER_PIN, notes[i], durations[i]);
+    delay(60);
   }
 }
 
@@ -117,11 +142,11 @@ void playGoodbyeMelody() {
 
 void blinkEyes() {
   for (int i = 0; i < 2; i++) {
-    digitalWrite(LED1_PIN, HIGH);
-    digitalWrite(LED2_PIN, HIGH);
+    setLed(LED1_PIN, true);
+    setLed(LED2_PIN, true);
     delay(250);
-    digitalWrite(LED1_PIN, LOW);
-    digitalWrite(LED2_PIN, LOW);
+    setLed(LED1_PIN, false);
+    setLed(LED2_PIN, false);
     delay(200);
   }
 }
@@ -129,9 +154,9 @@ void blinkEyes() {
 // Green LED pulses N times (success feel)
 void pulseGreen(int times) {
   for (int i = 0; i < times; i++) {
-    digitalWrite(LED1_PIN, HIGH);
+    setLed(LED1_PIN, true);
     delay(180);
-    digitalWrite(LED1_PIN, LOW);
+    setLed(LED1_PIN, false);
     delay(120);
   }
 }
@@ -139,9 +164,9 @@ void pulseGreen(int times) {
 // Red LED flashes N times (alarm feel)
 void flashRed(int times) {
   for (int i = 0; i < times; i++) {
-    digitalWrite(LED2_PIN, HIGH);
+    setLed(LED2_PIN, true);
     delay(100);
-    digitalWrite(LED2_PIN, LOW);
+    setLed(LED2_PIN, false);
     delay(80);
   }
 }
@@ -178,33 +203,18 @@ void runBirthdaySequence(String guestName) {
   };
   int count = sizeof(melody) / sizeof(melody[0]);
 
-  bool ledState = false;
-  unsigned long ledToggle = millis();
-  int noteIndex = 0;
-  unsigned long noteEnd = millis();
-  unsigned long endTime = millis() + 10000UL;
-
-  while (millis() < endTime || noteIndex < count) {
-    if (millis() - ledToggle >= 200) {
-      ledState = !ledState;
-      digitalWrite(LED1_PIN, ledState ? HIGH : LOW);
-      digitalWrite(LED2_PIN, ledState ? LOW  : HIGH);
-      ledToggle = millis();
-    }
-    if (noteIndex < count && millis() >= noteEnd) {
-      tone(BUZZER_PIN, melody[noteIndex], dur[noteIndex]);
-      noteEnd = millis() + dur[noteIndex] + 60;
-      noteIndex++;
-    }
-    delay(10);
+  for (int i = 0; i < count; i++) {
+    setLed(LED1_PIN, i % 2 == 0);
+    setLed(LED2_PIN, i % 2 != 0);
+    playTone(BUZZER_PIN, melody[i], dur[i]);
+    delay(60);
   }
-  noTone(BUZZER_PIN);
 
-  digitalWrite(LED1_PIN, HIGH);
-  digitalWrite(LED2_PIN, HIGH);
+  setLed(LED1_PIN, true);
+  setLed(LED2_PIN, true);
   delay(1000);
-  digitalWrite(LED1_PIN, LOW);
-  digitalWrite(LED2_PIN, LOW);
+  setLed(LED1_PIN, false);
+  setLed(LED2_PIN, false);
 }
 
 // ─── Waiter Sequence ──────────────────────────────────────────────────────────
@@ -224,8 +234,8 @@ void runWaiterSequence() {
   lcd.setCursor(0, 1);
   lcd.print("   food!  :)   ");
   myServo.write(90);
-  digitalWrite(LED1_PIN, HIGH);
-  digitalWrite(LED2_PIN, HIGH);
+  setLed(LED1_PIN, true);
+  setLed(LED2_PIN, true);
 }
 
 // ─── Reset ────────────────────────────────────────────────────────────────────
@@ -236,18 +246,18 @@ void resetRobot() {
   lcd.setCursor(0, 1);
   lcd.print(" See you soon! ");
   for (int i = 0; i < 2; i++) {
-    digitalWrite(LED1_PIN, HIGH);
-    digitalWrite(LED2_PIN, HIGH);
+    setLed(LED1_PIN, true);
+    setLed(LED2_PIN, true);
     delay(300);
-    digitalWrite(LED1_PIN, LOW);
-    digitalWrite(LED2_PIN, LOW);
+    setLed(LED1_PIN, false);
+    setLed(LED2_PIN, false);
     delay(200);
   }
   playGoodbyeMelody();
   delay(1000);
   myServo.write(0);
-  digitalWrite(LED1_PIN, LOW);
-  digitalWrite(LED2_PIN, LOW);
+  setLed(LED1_PIN, false);
+  setLed(LED2_PIN, false);
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("  BellaBot Pro ");
@@ -300,9 +310,9 @@ void handleRFIDCard(String scannedUid) {
     lcd.print(" Jebbar!  :)   ");
 
     // Solid green for 2 seconds
-    digitalWrite(LED1_PIN, HIGH);
+    setLed(LED1_PIN, true);
     delay(2000);
-    digitalWrite(LED1_PIN, LOW);
+    setLed(LED1_PIN, false);
 
     delay(500);
     resetRobot();
@@ -324,14 +334,14 @@ void handleRFIDCard(String scannedUid) {
     lcd.print(" Sorry, Anass! ");
 
     // Red LED ON solid
-    digitalWrite(LED2_PIN, HIGH);
+    setLed(LED2_PIN, true);
 
     // Play decline buzz
     playPaymentDeclineBuzz();
 
     // Flash red x5 rapidly
     flashRed(5);
-    digitalWrite(LED2_PIN, LOW);
+    setLed(LED2_PIN, false);
 
     delay(600);
 
@@ -415,10 +425,10 @@ const char htmlPage[] PROGMEM = R"rawhtml(
 //  HTTP HANDLERS
 // ══════════════════════════════════════════════════════════════════════════════
 void handleRoot()     { server.sendHeader("Access-Control-Allow-Origin","*"); server.send(200,"text/html",htmlPage); }
-void handleLed1On()   { server.sendHeader("Access-Control-Allow-Origin","*"); digitalWrite(LED1_PIN,HIGH); server.send(200,"text/plain","OK"); }
-void handleLed1Off()  { server.sendHeader("Access-Control-Allow-Origin","*"); digitalWrite(LED1_PIN,LOW);  server.send(200,"text/plain","OK"); }
-void handleLed2On()   { server.sendHeader("Access-Control-Allow-Origin","*"); digitalWrite(LED2_PIN,HIGH); server.send(200,"text/plain","OK"); }
-void handleLed2Off()  { server.sendHeader("Access-Control-Allow-Origin","*"); digitalWrite(LED2_PIN,LOW);  server.send(200,"text/plain","OK"); }
+void handleLed1On()   { server.sendHeader("Access-Control-Allow-Origin","*"); setLed(LED1_PIN, true);  server.send(200,"text/plain","OK"); }
+void handleLed1Off()  { server.sendHeader("Access-Control-Allow-Origin","*"); setLed(LED1_PIN, false); server.send(200,"text/plain","OK"); }
+void handleLed2On()   { server.sendHeader("Access-Control-Allow-Origin","*"); setLed(LED2_PIN, true);  server.send(200,"text/plain","OK"); }
+void handleLed2Off()  { server.sendHeader("Access-Control-Allow-Origin","*"); setLed(LED2_PIN, false); server.send(200,"text/plain","OK"); }
 void handleMotorOn()  { server.sendHeader("Access-Control-Allow-Origin","*"); myServo.write(90);           server.send(200,"text/plain","OK"); }
 void handleMotorOff() { server.sendHeader("Access-Control-Allow-Origin","*"); myServo.write(0);            server.send(200,"text/plain","OK"); }
 
@@ -427,8 +437,8 @@ void handleLED() {
   if (server.hasArg("id") && server.hasArg("val")) {
     int id  = server.arg("id").toInt();
     int val = server.arg("val").toInt();
-    if (id == 1) digitalWrite(LED1_PIN, val);
-    else if (id == 2) digitalWrite(LED2_PIN, val);
+    if (id == 1) setLed(LED1_PIN, val);
+    else if (id == 2) setLed(LED2_PIN, val);
     server.send(200,"text/plain","OK");
   } else { server.send(400,"text/plain","Bad Request"); }
 }
@@ -500,8 +510,8 @@ void setup() {
   pinMode(LED1_PIN, OUTPUT);
   pinMode(LED2_PIN, OUTPUT);
   pinMode(BUZZER_PIN, OUTPUT);
-  digitalWrite(LED1_PIN, LOW);
-  digitalWrite(LED2_PIN, LOW);
+  setLed(LED1_PIN, false);
+  setLed(LED2_PIN, false);
 
   myServo.attach(SERVO_PIN);
   myServo.write(0);
@@ -559,8 +569,8 @@ void setup() {
   Serial.println("HTTP Server started");
 
   // Startup beep
-  tone(BUZZER_PIN, 880, 100);  delay(150); noTone(BUZZER_PIN);
-  tone(BUZZER_PIN, 1047, 200); delay(250); noTone(BUZZER_PIN);
+  playTone(BUZZER_PIN, 880, 100);  delay(150);
+  playTone(BUZZER_PIN, 1047, 200); delay(250);
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -589,8 +599,8 @@ void loop() {
   if (Serial.available() > 0) {
     String input = Serial.readStringUntil('\n');
     input.trim();
-    if      (input.startsWith("L1:")) { digitalWrite(LED1_PIN, input.substring(3).toInt()); Serial.println("LED1_OK"); }
-    else if (input.startsWith("L2:")) { digitalWrite(LED2_PIN, input.substring(3).toInt()); Serial.println("LED2_OK"); }
+    if      (input.startsWith("L1:")) { setLed(LED1_PIN, input.substring(3).toInt()); Serial.println("LED1_OK"); }
+    else if (input.startsWith("L2:")) { setLed(LED2_PIN, input.substring(3).toInt()); Serial.println("LED2_OK"); }
     else if (input.startsWith("S:"))  { myServo.write(input.substring(2).toInt());           Serial.println("SERVO_OK"); }
     else if (input == "WAITER")       { runWaiterSequence(); }
     else if (input == "RESET")        { resetRobot(); }
