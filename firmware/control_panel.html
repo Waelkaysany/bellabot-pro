@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BellaBot Pro Controller</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card: rgba(22, 30, 49, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --primary: #f59e0b; /* BellaBot Yellow/Orange Theme */
+      --primary-glow: rgba(245, 158, 11, 0.4);
+      --accent: #10b981;
+      --accent-glow: rgba(16, 185, 129, 0.3);
+      --danger: #ef4444;
+      --text: #f8fafc;
+      --text-muted: #64748b;
+    }
+    
+    body {
+      margin: 0;
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: radial-gradient(circle at 50% 0%, #451a03 0%, var(--bg) 70%);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 500px;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    .card {
+      background: var(--card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 28px;
+      padding: 36px 28px;
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
+    }
+
+    h1 {
+      margin: 0 0 4px 0;
+      font-size: 28px;
+      font-weight: 800;
+      text-align: center;
+      background: linear-gradient(135deg, #fcd34d, #f59e0b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 13px;
+      margin-bottom: 28px;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-weight: 600;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      background: rgba(15, 23, 42, 0.6);
+      padding: 4px;
+      border-radius: 14px;
+      margin-bottom: 28px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .tab {
+      flex: 1;
+      padding: 10px 0;
+      text-align: center;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      border-radius: 10px;
+      transition: all 0.3s ease;
+      color: var(--text-muted);
+    }
+
+    .tab.active {
+      background: var(--primary);
+      color: #111; /* Dark text on yellow background */
+      box-shadow: 0 4px 12px var(--primary-glow);
+    }
+
+    /* Panel Content */
+    .panel {
+      display: none;
+      margin-bottom: 24px;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      color: white;
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--primary);
+    }
+
+    button {
+      background: var(--primary);
+      border: none;
+      border-radius: 12px;
+      padding: 12px 20px;
+      color: #111;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px var(--primary-glow);
+    }
+
+    button:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    button.btn-danger {
+      background: var(--danger);
+      color: white;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+
+    .status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 28px;
+      font-size: 14px;
+      background: rgba(15, 23, 42, 0.4);
+      padding: 8px 16px;
+      border-radius: 20px;
+      width: fit-content;
+      margin-left: auto;
+      margin-right: auto;
+      border: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--danger);
+      box-shadow: 0 0 8px var(--danger);
+    }
+
+    .status-dot.connected {
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+
+    /* Controls */
+    .control-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(15, 23, 42, 0.3);
+      padding: 16px 20px;
+      border-radius: 16px;
+      margin-bottom: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.02);
+      border-left: 4px solid var(--primary);
+    }
+
+    .control-label {
+      font-weight: 600;
+      font-size: 16px;
+    }
+    
+    .control-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      display: block;
+    }
+
+    /* Switch */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 52px;
+      height: 28px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #334155;
+      transition: .3s;
+      border-radius: 34px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--accent);
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(24px);
+    }
+
+    /* Servo Slider */
+    .servo-box {
+      background: rgba(15, 23, 42, 0.3);
+      padding: 24px 20px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.02);
+      border-left: 4px solid var(--primary);
+      margin-top: 24px;
+    }
+
+    .servo-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .servo-value {
+      font-family: monospace;
+      font-weight: 700;
+      font-size: 18px;
+      color: var(--primary);
+    }
+
+    .range-input {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 8px;
+      border-radius: 4px;
+      background: #1e293b;
+      outline: none;
+      margin: 8px 0;
+    }
+
+    .range-input::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--primary);
+      cursor: pointer;
+      box-shadow: 0 0 12px var(--primary-glow);
+      transition: transform 0.1s;
+    }
+
+    .range-input::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="container">
+  <div class="card">
+    <h1>BellaBot Pro</h1>
+    <div class="subtitle">Robot Control Interface</div>
+
+    <!-- Mode Tabs -->
+    <div class="tabs">
+      <div class="tab" onclick="setMode('serial')">USB Cable</div>
+      <div class="tab active" onclick="setMode('wifi')">Wi-Fi (Wireless)</div>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <div class="status-dot" id="statusDot"></div>
+      <span id="statusText">Disconnected</span>
+    </div>
+
+    <!-- Serial Config Panel -->
+    <div id="serialPanel" class="panel">
+      <div style="display: flex; justify-content: center;">
+        <button id="serialConnectBtn" onclick="connectSerial()">Connect Robot via USB</button>
+      </div>
+    </div>
+
+    <!-- Wi-Fi Config Panel -->
+    <div id="wifiPanel" class="panel active">
+      <div class="input-group">
+        <input type="text" id="espIp" value="192.168.158.102" placeholder="BellaBot IP Address">
+        <button onclick="connectWifi()">Link Robot</button>
+      </div>
+    </div>
+
+    <!-- Hardware Controls -->
+    <div>
+      <div class="control-row">
+        <div>
+          <span class="control-label">Left Eye</span>
+          <span class="control-desc">Green LED (Pin 18)</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="led1" onchange="toggleLED(1, this.checked)">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="control-row">
+        <div>
+          <span class="control-label">Right Eye</span>
+          <span class="control-desc">Red LED (Pin 19)</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="led2" onchange="toggleLED(2, this.checked)">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="servo-box">
+        <div class="servo-header">
+          <div>
+            <span class="control-label">Head Rotation</span>
+            <span class="control-desc">Servo Motor (Pin 23)</span>
+          </div>
+          <span class="servo-value" id="servoVal">0°</span>
+        </div>
+        <input type="range" min="0" max="180" value="0" class="range-input" id="servo" oninput="updateServo(this.value)">
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentMode = 'wifi';
+  let port = null;
+  let writer = null;
+  let wifiIp = "";
+  let isConnected = false;
+
+  function setMode(mode) {
+    currentMode = mode;
+    document.querySelectorAll('.tab').forEach((t, i) => {
+      t.classList.toggle('active', (i === 0 && mode === 'serial') || (i === 1 && mode === 'wifi'));
+    });
+    document.getElementById('serialPanel').classList.toggle('active', mode === 'serial');
+    document.getElementById('wifiPanel').classList.toggle('active', mode === 'wifi');
+    
+    // Reset connection state on mode switch
+    disconnect();
+  }
+
+  function updateStatus(connected, text) {
+    isConnected = connected;
+    const dot = document.getElementById('statusDot');
+    const label = document.getElementById('statusText');
+    dot.className = 'status-dot' + (connected ? ' connected' : '');
+    label.innerText = text;
+  }
+
+  function disconnect() {
+    if (port) {
+      try {
+        writer.releaseLock();
+        port.close();
+      } catch (e) {}
+      port = null;
+      writer = null;
+    }
+    updateStatus(false, 'Disconnected');
+    document.getElementById('serialConnectBtn').innerText = 'Connect Robot via USB';
+    document.getElementById('serialConnectBtn').className = '';
+  }
+
+  // Web Serial Implementation
+  async function connectSerial() {
+    if (port) {
+      disconnect();
+      return;
+    }
+
+    if (!("serial" in navigator)) {
+      alert("Web Serial API is not supported in this browser. Please use Chrome, Edge, or Opera.");
+      return;
+    }
+
+    try {
+      port = await navigator.serial.requestPort();
+      await port.open({ baudRate: 115200 });
+      
+      const encoder = new TextEncoderStream();
+      const outputDone = encoder.readable.pipeTo(port.writable);
+      writer = encoder.writable.getWriter();
+      
+      updateStatus(true, 'Robot Linked (USB)');
+      document.getElementById('serialConnectBtn').innerText = 'Disconnect';
+      document.getElementById('serialConnectBtn').className = 'btn-danger';
+    } catch (err) {
+      console.error(err);
+      updateStatus(false, 'USB Connection Failed');
+    }
+  }
+
+  // Wi-Fi HTTP Implementation
+  function connectWifi() {
+    const ip = document.getElementById('espIp').value.trim();
+    if (!ip) return;
+    
+    updateStatus(false, 'Linking...');
+    
+    // Test connection by hitting root page
+    fetch(`http://${ip}/`, { mode: 'no-cors' })
+      .then(() => {
+        wifiIp = ip;
+        updateStatus(true, `Robot Linked (Wi-Fi)`);
+      })
+      .catch(err => {
+        console.error(err);
+        updateStatus(false, 'Wi-Fi Link Failed');
+      });
+  }
+
+  // Unified control functions
+  function toggleLED(ledId, state) {
+    const val = state ? 1 : 0;
+    if (currentMode === 'serial' && writer) {
+      writer.write(`L${ledId}:${val}\n`);
+    } else if (currentMode === 'wifi' && wifiIp) {
+      fetch(`http://${wifiIp}/led?id=${ledId}&val=${val}`).catch(err => console.error(err));
+    }
+  }
+
+  let servoTimeout;
+  function updateServo(val) {
+    document.getElementById('servoVal').innerText = val + '°';
+    clearTimeout(servoTimeout);
+    servoTimeout = setTimeout(() => {
+      if (currentMode === 'serial' && writer) {
+        writer.write(`S:${val}\n`);
+      } else if (currentMode === 'wifi' && wifiIp) {
+        fetch(`http://${wifiIp}/servo?val=${val}`).catch(err => console.error(err));
+      }
+    }, 50);
+  }
+</script>
+</body>
+</html>

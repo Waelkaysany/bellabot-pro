@@ -1,0 +1,1032 @@
+flutter : Support for 
+Android x86 targets will 
+be removed in the next 
+stable release after 
+3.27. See https://github.
+com/flutter/flutter/issue
+s/157543 for details.
+At line:1 char:1
++ flutter build apk 
+--debug > build_err.txt 
+2>&1
++ ~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo       
+       : NotSpecified:   
+  (Support for And...4   
+ 3 for details.:Strin    
+g) [], RemoteExcepti    
+on
+    + FullyQualifiedErro 
+   rId : NativeCommandE  
+  rror
+ 
+Running Gradle task 'assembleDebug'...                          
+Your project is 
+configured with Android 
+NDK 26.3.11579264, but 
+the following plugin(s) 
+depend on a different 
+Android NDK version:
+- path_provider_android 
+requires Android NDK 
+27.0.12077973
+Fix this issue by using 
+the highest Android NDK 
+version (they are 
+backward compatible).
+Add the following to C:\U
+sers\USER\Desktop\anti\an
+droid\app\build.gradle.kt
+s:
+
+    android {
+        ndkVersion = 
+"27.0.12077973"
+        ...
+    }
+
+FAILURE: Build failed 
+with an exception.
+
+* What went wrong:
+Execution failed for 
+task ':app:configureCMake
+Debug[arm64-v8a]'.
+> [CXX1429] error when 
+building with cmake 
+using C:\tools\flutter\pa
+ckages\flutter_tools\grad
+le\src\main\scripts\CMake
+Lists.txt: Not searching 
+for unused variables 
+given on the command 
+line.
+  -- Configuring 
+incomplete, errors 
+occurred!
+
+  C++ build system 
+[configure] failed while 
+executing:
+      @echo off
+      "C:\\Users\\USER\\A
+ppData\\Local\\Android\\s
+dk\\cmake\\3.22.1\\bin\\c
+make.exe" ^
+        "-HC:\\tools\\flu
+tter\\packages\\flutter_t
+ools\\gradle\\src\\main\\
+scripts" ^
+        "-DCMAKE_SYSTEM_N
+AME=Android" ^
+        "-DCMAKE_EXPORT_C
+OMPILE_COMMANDS=ON" ^
+        "-DCMAKE_SYSTEM_V
+ERSION=22" ^
+        "-DANDROID_PLATFO
+RM=android-22" ^
+        "-DANDROID_ABI=ar
+m64-v8a" ^
+        "-DCMAKE_ANDROID_
+ARCH_ABI=arm64-v8a" ^
+        "-DANDROID_NDK=C:
+\\Users\\USER\\AppData\\L
+ocal\\Android\\sdk\\ndk\\
+26.3.11579264" ^
+        "-DCMAKE_ANDROID_
+NDK=C:\\Users\\USER\\AppD
+ata\\Local\\Android\\sdk\
+\ndk\\26.3.11579264" ^
+        "-DCMAKE_TOOLCHAI
+N_FILE=C:\\Users\\USER\\A
+ppData\\Local\\Android\\s
+dk\\ndk\\26.3.11579264\\b
+uild\\cmake\\android.tool
+chain.cmake" ^
+        "-DCMAKE_MAKE_PRO
+GRAM=C:\\Users\\USER\\App
+Data\\Local\\Android\\sdk
+\\cmake\\3.22.1\\bin\\nin
+ja.exe" ^
+        "-DCMAKE_LIBRARY_
+OUTPUT_DIRECTORY=C:\\User
+s\\USER\\Desktop\\anti\\b
+uild\\app\\intermediates\
+\cxx\\Debug\\25475j14\\ob
+j\\arm64-v8a" ^
+        "-DCMAKE_RUNTIME_
+OUTPUT_DIRECTORY=C:\\User
+s\\USER\\Desktop\\anti\\b
+uild\\app\\intermediates\
+\cxx\\Debug\\25475j14\\ob
+j\\arm64-v8a" ^
+        "-DCMAKE_BUILD_TY
+PE=Debug" ^
+        "-BC:\\Users\\USE
+R\\Desktop\\anti\\build\\
+.cxx\\Debug\\25475j14\\ar
+m64-v8a" ^
+        -GNinja ^
+        -Wno-dev ^
+        
+--no-warn-unused-cli
+    from C:\Users\USER\De
+sktop\anti\android\app
+  CMake Error at C:/Users
+/USER/AppData/Local/Andro
+id/Sdk/cmake/3.22.1/share
+/cmake-3.22/Modules/CMake
+DetermineSystem.cmake:130
+ (message):
+    Could not find 
+toolchain file:
+    C:\Users\USER\AppData
+\Local\Android\sdk\ndk\26
+.3.11579264\build\cmake\a
+ndroid.toolchain.cmake
+  Call Stack (most 
+recent call first):
+    CMakeLists.txt
+
+
+  CMake Error: 
+CMAKE_C_COMPILER not 
+set, after EnableLanguage
+  CMake Error: 
+CMAKE_CXX_COMPILER not 
+set, after 
+EnableLanguage : com.andr
+oid.ide.common.process.Pr
+ocessException: Not 
+searching for unused 
+variables given on the 
+command line.
+  -- Configuring 
+incomplete, errors 
+occurred!
+
+  C++ build system 
+[configure] failed while 
+executing:
+      @echo off
+      "C:\\Users\\USER\\A
+ppData\\Local\\Android\\s
+dk\\cmake\\3.22.1\\bin\\c
+make.exe" ^
+        "-HC:\\tools\\flu
+tter\\packages\\flutter_t
+ools\\gradle\\src\\main\\
+scripts" ^
+        "-DCMAKE_SYSTEM_N
+AME=Android" ^
+        "-DCMAKE_EXPORT_C
+OMPILE_COMMANDS=ON" ^
+        "-DCMAKE_SYSTEM_V
+ERSION=22" ^
+        "-DANDROID_PLATFO
+RM=android-22" ^
+        "-DANDROID_ABI=ar
+m64-v8a" ^
+        "-DCMAKE_ANDROID_
+ARCH_ABI=arm64-v8a" ^
+        "-DANDROID_NDK=C:
+\\Users\\USER\\AppData\\L
+ocal\\Android\\sdk\\ndk\\
+26.3.11579264" ^
+        "-DCMAKE_ANDROID_
+NDK=C:\\Users\\USER\\AppD
+ata\\Local\\Android\\sdk\
+\ndk\\26.3.11579264" ^
+        "-DCMAKE_TOOLCHAI
+N_FILE=C:\\Users\\USER\\A
+ppData\\Local\\Android\\s
+dk\\ndk\\26.3.11579264\\b
+uild\\cmake\\android.tool
+chain.cmake" ^
+        "-DCMAKE_MAKE_PRO
+GRAM=C:\\Users\\USER\\App
+Data\\Local\\Android\\sdk
+\\cmake\\3.22.1\\bin\\nin
+ja.exe" ^
+        "-DCMAKE_LIBRARY_
+OUTPUT_DIRECTORY=C:\\User
+s\\USER\\Desktop\\anti\\b
+uild\\app\\intermediates\
+\cxx\\Debug\\25475j14\\ob
+j\\arm64-v8a" ^
+        "-DCMAKE_RUNTIME_
+OUTPUT_DIRECTORY=C:\\User
+s\\USER\\Desktop\\anti\\b
+uild\\app\\intermediates\
+\cxx\\Debug\\25475j14\\ob
+j\\arm64-v8a" ^
+        "-DCMAKE_BUILD_TY
+PE=Debug" ^
+        "-BC:\\Users\\USE
+R\\Desktop\\anti\\build\\
+.cxx\\Debug\\25475j14\\ar
+m64-v8a" ^
+        -GNinja ^
+        -Wno-dev ^
+        
+--no-warn-unused-cli
+    from C:\Users\USER\De
+sktop\anti\android\app
+  CMake Error at C:/Users
+/USER/AppData/Local/Andro
+id/Sdk/cmake/3.22.1/share
+/cmake-3.22/Modules/CMake
+DetermineSystem.cmake:130
+ (message):
+    Could not find 
+toolchain file:
+    C:\Users\USER\AppData
+\Local\Android\sdk\ndk\26
+.3.11579264\build\cmake\a
+ndroid.toolchain.cmake
+  Call Stack (most 
+recent call first):
+    CMakeLists.txt
+
+
+  CMake Error: 
+CMAKE_C_COMPILER not 
+set, after EnableLanguage
+  CMake Error: 
+CMAKE_CXX_COMPILER not 
+set, after EnableLanguage
+  	at com.android.build.g
+radle.internal.cxx.proces
+s.ExecuteProcessKt.execut
+e(ExecuteProcess.kt:288)
+  	at com.android.build.g
+radle.internal.cxx.proces
+s.ExecuteProcessKt$execut
+eProcess$1.invoke(Execute
+Process.kt:108)
+  	at com.android.build.g
+radle.internal.cxx.proces
+s.ExecuteProcessKt$execut
+eProcess$1.invoke(Execute
+Process.kt:106)
+  	at com.android.build.g
+radle.internal.cxx.timing
+.TimingEnvironmentKt.time
+(TimingEnvironment.kt:32)
+  	at com.android.build.g
+radle.internal.cxx.proces
+s.ExecuteProcessKt.execut
+eProcess(ExecuteProcess.k
+t:106)
+  	at com.android.build.g
+radle.internal.cxx.proces
+s.ExecuteProcessKt.execut
+eProcess$default(ExecuteP
+rocess.kt:85)
+  	at com.android.build.g
+radle.tasks.CmakeQueryMet
+adataGenerator.executePro
+cess(CmakeFileApiMetadata
+Generator.kt:59)
+  	at com.android.build.g
+radle.tasks.ExternalNativ
+eJsonGenerator$configureO
+neAbi$1$1$3.invoke(Extern
+alNativeJsonGenerator.kt:
+247)
+  	at com.android.build.g
+radle.tasks.ExternalNativ
+eJsonGenerator$configureO
+neAbi$1$1$3.invoke(Extern
+alNativeJsonGenerator.kt:
+247)
+  	at com.android.build.g
+radle.internal.cxx.timing
+.TimingEnvironmentKt.time
+(TimingEnvironment.kt:32)
+  	at com.android.build.g
+radle.tasks.ExternalNativ
+eJsonGenerator.configureO
+neAbi(ExternalNativeJsonG
+enerator.kt:247)
+  	at com.android.build.g
+radle.tasks.ExternalNativ
+eJsonGenerator.configure(
+ExternalNativeJsonGenerat
+or.kt:113)
+  	at com.android.build.g
+radle.tasks.ExternalNativ
+eBuildJsonTask.doTaskActi
+on(ExternalNativeBuildJso
+nTask.kt:89)
+  	at com.android.build.g
+radle.internal.tasks.Unsa
+feOutputsTask$taskAction$
+$inlined$recordTaskAction
+$1.invoke(BaseTask.kt:78)
+  	at com.android.build.g
+radle.internal.tasks.Bloc
+ks.recordSpan(Blocks.java
+:51)
+  	at com.android.build.g
+radle.internal.tasks.Unsa
+feOutputsTask.taskAction(
+UnsafeOutputsTask.kt:81)
+  	at java.base/jdk.inter
+nal.reflect.DirectMethodH
+andleAccessor.invoke(Unkn
+own Source)
+  	at java.base/java.lang
+.reflect.Method.invoke(Un
+known Source)
+  	at org.gradle.internal
+.reflect.JavaMethod.invok
+e(JavaMethod.java:125)
+  	at org.gradle.api.inte
+rnal.project.taskfactory.
+StandardTaskAction.doExec
+ute(StandardTaskAction.ja
+va:58)
+  	at org.gradle.api.inte
+rnal.project.taskfactory.
+StandardTaskAction.execut
+e(StandardTaskAction.java
+:51)
+  	at org.gradle.api.inte
+rnal.project.taskfactory.
+StandardTaskAction.execut
+e(StandardTaskAction.java
+:29)
+  	at org.gradle.api.inte
+rnal.tasks.execution.Task
+Execution$3.run(TaskExecu
+tion.java:244)
+  	at org.gradle.internal
+.operations.DefaultBuildO
+perationRunner$1.execute(
+DefaultBuildOperationRunn
+er.java:29)
+  	at org.gradle.internal
+.operations.DefaultBuildO
+perationRunner$1.execute(
+DefaultBuildOperationRunn
+er.java:26)
+  	at org.gradle.internal
+.operations.DefaultBuildO
+perationRunner$2.execute(
+DefaultBuildOperationRunn
+er.java:66)
+  	at org.gradle.internal
+.operations.DefaultBuildO
+perationRunner$2.execute(
+DefaultBuildOperationRunn
+er.java:59)
+  	at org.gradle.internal
+.operations.DefaultBuildO
+perationRunner.execute(De
+faultBuildOperationRunner
+.java:166)
+  	at org.gradle.internal
+.operations.DefaultBuildO
+perationRunner.execute(De
+faultBuildOperationRunner
+.java:59)
+  	at org.gradle.internal
+.operations.DefaultBuildO
+perationRunner.run(Defaul
+tBuildOperationRunner.jav
+a:47)
+  	at org.gradle.api.inte
+rnal.tasks.execution.Task
+Execution.executeAction(T
+askExecution.java:229)
+  	at org.gradle.api.inte
+rnal.tasks.execution.Task
+Execution.executeActions(
+TaskExecution.java:212)
+  	at org.gradle.api.inte
+rnal.tasks.execution.Task
+Execution.executeWithPrev
+iousOutputFiles(TaskExecu
+tion.java:195)
+  	at org.gradle.api.inte
+rnal.tasks.execution.Task
+Execution.execute(TaskExe
+cution.java:162)
+  	at org.gradle.internal
+.execution.steps.ExecuteS
+tep.executeInternal(Execu
+teStep.java:105)
+  	at org.gradle.internal
+.execution.steps.ExecuteS
+tep.access$000(ExecuteSte
+p.java:44)
+  	at org.gradle.internal
+.execution.steps.ExecuteS
+tep$1.call(ExecuteStep.ja
+va:59)
+  	at org.gradle.internal
+.execution.steps.ExecuteS
+tep$1.call(ExecuteStep.ja
+va:56)
+  	at org.gradle.internal
+.operations.DefaultBuildO
+perationRunner$CallableBu
+ildOperationWorker.execut
+e(DefaultBuildOperationRu
+nner.java:209)
+  	at org.gradle.internal
+.operations.DefaultBuildO
+perationRunner$CallableBu
+ildOperationWorker.execut
+e(DefaultBuildOperationRu
+nner.java:204)
+  	at org.gradle.internal
+.operations.DefaultBuildO
+perationRunner$2.execute(
+DefaultBuildOperationRunn
+er.java:66)
+  	at org.gradle.internal
+.operations.DefaultBuildO
+perationRunner$2.execute(
+DefaultBuildOperationRunn
+er.java:59)
+  	at org.gradle.internal
+.operations.DefaultBuildO
+perationRunner.execute(De
+faultBuildOperationRunner
+.java:166)
+  	at org.gradle.internal
+.operations.DefaultBuildO
+perationRunner.execute(De
+faultBuildOperationRunner
+.java:59)
+  	at org.gradle.internal
+.operations.DefaultBuildO
+perationRunner.call(Defau
+ltBuildOperationRunner.ja
+va:53)
+  	at org.gradle.internal
+.execution.steps.ExecuteS
+tep.execute(ExecuteStep.j
+ava:56)
+  	at org.gradle.internal
+.execution.steps.ExecuteS
+tep.execute(ExecuteStep.j
+ava:44)
+  	at org.gradle.internal
+.execution.steps.CancelEx
+ecutionStep.execute(Cance
+lExecutionStep.java:42)
+  	at org.gradle.internal
+.execution.steps.TimeoutS
+tep.executeWithoutTimeout
+(TimeoutStep.java:75)
+  	at org.gradle.internal
+.execution.steps.TimeoutS
+tep.execute(TimeoutStep.j
+ava:55)
+  	at org.gradle.internal
+.execution.steps.PreCreat
+eOutputParentsStep.execut
+e(PreCreateOutputParentsS
+tep.java:50)
+  	at org.gradle.internal
+.execution.steps.PreCreat
+eOutputParentsStep.execut
+e(PreCreateOutputParentsS
+tep.java:28)
+  	at org.gradle.internal
+.execution.steps.RemovePr
+eviousOutputsStep.execute
+(RemovePreviousOutputsSte
+p.java:67)
+  	at org.gradle.internal
+.execution.steps.RemovePr
+eviousOutputsStep.execute
+(RemovePreviousOutputsSte
+p.java:37)
+  	at org.gradle.internal
+.execution.steps.Broadcas
+tChangingOutputsStep.exec
+ute(BroadcastChangingOutp
+utsStep.java:61)
+  	at org.gradle.internal
+.execution.steps.Broadcas
+tChangingOutputsStep.exec
+ute(BroadcastChangingOutp
+utsStep.java:26)
+  	at org.gradle.internal
+.execution.steps.CaptureO
+utputsAfterExecutionStep.
+execute(CaptureOutputsAft
+erExecutionStep.java:69)
+  	at org.gradle.internal
+.execution.steps.CaptureO
+utputsAfterExecutionStep.
+execute(CaptureOutputsAft
+erExecutionStep.java:46)
+  	at org.gradle.internal
+.execution.steps.ResolveI
+nputChangesStep.execute(R
+esolveInputChangesStep.ja
+va:40)
+  	at org.gradle.internal
+.execution.steps.ResolveI
+nputChangesStep.execute(R
+esolveInputChangesStep.ja
+va:29)
+  	at org.gradle.internal
+.execution.steps.BuildCac
+heStep.executeWithoutCach
+e(BuildCacheStep.java:189
+)
+  	at org.gradle.internal
+.execution.steps.BuildCac
+heStep.lambda$execute$1(B
+uildCacheStep.java:75)
+  	at org.gradle.internal
+.Either$Right.fold(Either
+.java:175)
+  	at org.gradle.internal
+.execution.caching.Cachin
+gState.fold(CachingState.
+java:62)
+  	at org.gradle.internal
+.execution.steps.BuildCac
+heStep.execute(BuildCache
+Step.java:73)
+  	at org.gradle.internal
+.execution.steps.BuildCac
+heStep.execute(BuildCache
+Step.java:48)
+  	at org.gradle.internal
+.execution.steps.StoreExe
+cutionStateStep.execute(S
+toreExecutionStateStep.ja
+va:46)
+  	at org.gradle.internal
+.execution.steps.StoreExe
+cutionStateStep.execute(S
+toreExecutionStateStep.ja
+va:35)
+  	at org.gradle.internal
+.execution.steps.SkipUpTo
+DateStep.executeBecause(S
+kipUpToDateStep.java:75)
+  	at org.gradle.internal
+.execution.steps.SkipUpTo
+DateStep.lambda$execute$2
+(SkipUpToDateStep.java:53
+)
+  	at java.base/java.util
+.Optional.orElseGet(Unkno
+wn Source)
+  	at org.gradle.internal
+.execution.steps.SkipUpTo
+DateStep.execute(SkipUpTo
+DateStep.java:53)
+  	at org.gradle.internal
+.execution.steps.SkipUpTo
+DateStep.execute(SkipUpTo
+DateStep.java:35)
+  	at org.gradle.internal
+.execution.steps.legacy.M
+arkSnapshottingInputsFini
+shedStep.execute(MarkSnap
+shottingInputsFinishedSte
+p.java:37)
+  	at org.gradle.internal
+.execution.steps.legacy.M
+arkSnapshottingInputsFini
+shedStep.execute(MarkSnap
+shottingInputsFinishedSte
+p.java:27)
+  	at org.gradle.internal
+.execution.steps.ResolveI
+ncrementalCachingStateSte
+p.executeDelegate(Resolve
+IncrementalCachingStateSt
+ep.java:49)
+  	at org.gradle.internal
+.execution.steps.ResolveI
+ncrementalCachingStateSte
+p.executeDelegate(Resolve
+IncrementalCachingStateSt
+ep.java:27)
+  	at org.gradle.internal
+.execution.steps.Abstract
+ResolveCachingStateStep.e
+xecute(AbstractResolveCac
+hingStateStep.java:71)
+  	at org.gradle.internal
+.execution.steps.Abstract
+ResolveCachingStateStep.e
+xecute(AbstractResolveCac
+hingStateStep.java:39)
+  	at org.gradle.internal
+.execution.steps.ResolveC
+hangesStep.execute(Resolv
+eChangesStep.java:65)
+  	at org.gradle.internal
+.execution.steps.ResolveC
+hangesStep.execute(Resolv
+eChangesStep.java:36)
+  	at org.gradle.internal
+.execution.steps.Validate
+Step.execute(ValidateStep
+.java:107)
+  	at org.gradle.internal
+.execution.steps.Validate
+Step.execute(ValidateStep
+.java:56)
+  	at org.gradle.internal
+.execution.steps.Abstract
+CaptureStateBeforeExecuti
+onStep.execute(AbstractCa
+ptureStateBeforeExecution
+Step.java:64)
+  	at org.gradle.internal
+.execution.steps.Abstract
+CaptureStateBeforeExecuti
+onStep.execute(AbstractCa
+ptureStateBeforeExecution
+Step.java:43)
+  	at org.gradle.internal
+.execution.steps.Abstract
+SkipEmptyWorkStep.execute
+WithNonEmptySources(Abstr
+actSkipEmptyWorkStep.java
+:125)
+  	at org.gradle.internal
+.execution.steps.Abstract
+SkipEmptyWorkStep.execute
+(AbstractSkipEmptyWorkSte
+p.java:56)
+  	at org.gradle.internal
+.execution.steps.Abstract
+SkipEmptyWorkStep.execute
+(AbstractSkipEmptyWorkSte
+p.java:36)
+  	at org.gradle.internal
+.execution.steps.legacy.M
+arkSnapshottingInputsStar
+tedStep.execute(MarkSnaps
+hottingInputsStartedStep.
+java:38)
+  	at org.gradle.internal
+.execution.steps.LoadPrev
+iousExecutionStateStep.ex
+ecute(LoadPreviousExecuti
+onStateStep.java:36)
+  	at org.gradle.internal
+.execution.steps.LoadPrev
+iousExecutionStateStep.ex
+ecute(LoadPreviousExecuti
+onStateStep.java:23)
+  	at org.gradle.internal
+.execution.steps.HandleSt
+aleOutputsStep.execute(Ha
+ndleStaleOutputsStep.java
+:75)
+  	at org.gradle.internal
+.execution.steps.HandleSt
+aleOutputsStep.execute(Ha
+ndleStaleOutputsStep.java
+:41)
+  	at org.gradle.internal
+.execution.steps.AssignMu
+tableWorkspaceStep.lambda
+$execute$0(AssignMutableW
+orkspaceStep.java:35)
+  	at org.gradle.api.inte
+rnal.tasks.execution.Task
+Execution$4.withWorkspace
+(TaskExecution.java:289)
+  	at org.gradle.internal
+.execution.steps.AssignMu
+tableWorkspaceStep.execut
+e(AssignMutableWorkspaceS
+tep.java:31)
+  	at org.gradle.internal
+.execution.steps.AssignMu
+tableWorkspaceStep.execut
+e(AssignMutableWorkspaceS
+tep.java:22)
+  	at org.gradle.internal
+.execution.steps.ChoosePi
+pelineStep.execute(Choose
+PipelineStep.java:40)
+  	at org.gradle.internal
+.execution.steps.ChoosePi
+pelineStep.execute(Choose
+PipelineStep.java:23)
+  	at org.gradle.internal
+.execution.steps.ExecuteW
+orkBuildOperationFiringSt
+ep.lambda$execute$2(Execu
+teWorkBuildOperationFirin
+gStep.java:67)
+  	at java.base/java.util
+.Optional.orElseGet(Unkno
+wn Source)
+  	at org.gradle.internal
+.execution.steps.ExecuteW
+orkBuildOperationFiringSt
+ep.execute(ExecuteWorkBui
+ldOperationFiringStep.jav
+a:67)
+  	at org.gradle.internal
+.execution.steps.ExecuteW
+orkBuildOperationFiringSt
+ep.execute(ExecuteWorkBui
+ldOperationFiringStep.jav
+a:39)
+  	at org.gradle.internal
+.execution.steps.Identity
+CacheStep.execute(Identit
+yCacheStep.java:46)
+  	at org.gradle.internal
+.execution.steps.Identity
+CacheStep.execute(Identit
+yCacheStep.java:34)
+  	at org.gradle.internal
+.execution.steps.Identify
+Step.execute(IdentifyStep
+.java:48)
+  	at org.gradle.internal
+.execution.steps.Identify
+Step.execute(IdentifyStep
+.java:35)
+  	at org.gradle.internal
+.execution.impl.DefaultEx
+ecutionEngine$1.execute(D
+efaultExecutionEngine.jav
+a:61)
+  	at org.gradle.api.inte
+rnal.tasks.execution.Exec
+uteActionsTaskExecuter.ex
+ecuteIfValid(ExecuteActio
+nsTaskExecuter.java:127)
+  	at org.gradle.api.inte
+rnal.tasks.execution.Exec
+uteActionsTaskExecuter.ex
+ecute(ExecuteActionsTaskE
+xecuter.java:116)
+  	at org.gradle.api.inte
+rnal.tasks.execution.Prob
+lemsTaskPathTrackingTaskE
+xecuter.execute(ProblemsT
+askPathTrackingTaskExecut
+er.java:40)
+  	at org.gradle.api.inte
+rnal.tasks.execution.Fina
+lizePropertiesTaskExecute
+r.execute(FinalizePropert
+iesTaskExecuter.java:46)
+  	at org.gradle.api.inte
+rnal.tasks.execution.Reso
+lveTaskExecutionModeExecu
+ter.execute(ResolveTaskEx
+ecutionModeExecuter.java:
+51)
+  	at org.gradle.api.inte
+rnal.tasks.execution.Skip
+TaskWithNoActionsExecuter
+.execute(SkipTaskWithNoAc
+tionsExecuter.java:57)
+  	at org.gradle.api.inte
+rnal.tasks.execution.Skip
+OnlyIfTaskExecuter.execut
+e(SkipOnlyIfTaskExecuter.
+java:74)
+  	at org.gradle.api.inte
+rnal.tasks.execution.Catc
+hExceptionTaskExecuter.ex
+ecute(CatchExceptionTaskE
+xecuter.java:36)
+  	at org.gradle.api.inte
+rnal.tasks.execution.Even
+tFiringTaskExecuter$1.exe
+cuteTask(EventFiringTaskE
+xecuter.java:77)
+  	at org.gradle.api.inte
+rnal.tasks.execution.Even
+tFiringTaskExecuter$1.cal
+l(EventFiringTaskExecuter
+.java:55)
+  	at org.gradle.api.inte
+rnal.tasks.execution.Even
+tFiringTaskExecuter$1.cal
+l(EventFiringTaskExecuter
+.java:52)
+  	at org.gradle.internal
+.operations.DefaultBuildO
+perationRunner$CallableBu
+ildOperationWorker.execut
+e(DefaultBuildOperationRu
+nner.java:209)
+  	at org.gradle.internal
+.operations.DefaultBuildO
+perationRunner$CallableBu
+ildOperationWorker.execut
+e(DefaultBuildOperationRu
+nner.java:204)
+  	at org.gradle.internal
+.operations.DefaultBuildO
+perationRunner$2.execute(
+DefaultBuildOperationRunn
+er.java:66)
+  	at org.gradle.internal
+.operations.DefaultBuildO
+perationRunner$2.execute(
+DefaultBuildOperationRunn
+er.java:59)
+  	at org.gradle.internal
+.operations.DefaultBuildO
+perationRunner.execute(De
+faultBuildOperationRunner
+.java:166)
+  	at org.gradle.internal
+.operations.DefaultBuildO
+perationRunner.execute(De
+faultBuildOperationRunner
+.java:59)
+  	at org.gradle.internal
+.operations.DefaultBuildO
+perationRunner.call(Defau
+ltBuildOperationRunner.ja
+va:53)
+  	at org.gradle.api.inte
+rnal.tasks.execution.Even
+tFiringTaskExecuter.execu
+te(EventFiringTaskExecute
+r.java:52)
+  	at org.gradle.executio
+n.plan.LocalTaskNodeExecu
+tor.execute(LocalTaskNode
+Executor.java:42)
+  	at org.gradle.executio
+n.taskgraph.DefaultTaskEx
+ecutionGraph$InvokeNodeEx
+ecutorsAction.execute(Def
+aultTaskExecutionGraph.ja
+va:331)
+  	at org.gradle.executio
+n.taskgraph.DefaultTaskEx
+ecutionGraph$InvokeNodeEx
+ecutorsAction.execute(Def
+aultTaskExecutionGraph.ja
+va:318)
+  	at org.gradle.executio
+n.taskgraph.DefaultTaskEx
+ecutionGraph$BuildOperati
+onAwareExecutionAction.la
+mbda$execute$0(DefaultTas
+kExecutionGraph.java:314)
+  	at org.gradle.internal
+.operations.CurrentBuildO
+perationRef.with(CurrentB
+uildOperationRef.java:85)
+  	at org.gradle.executio
+n.taskgraph.DefaultTaskEx
+ecutionGraph$BuildOperati
+onAwareExecutionAction.ex
+ecute(DefaultTaskExecutio
+nGraph.java:314)
+  	at org.gradle.executio
+n.taskgraph.DefaultTaskEx
+ecutionGraph$BuildOperati
+onAwareExecutionAction.ex
+ecute(DefaultTaskExecutio
+nGraph.java:303)
+  	at org.gradle.executio
+n.plan.DefaultPlanExecuto
+r$ExecutorWorker.execute(
+DefaultPlanExecutor.java:
+459)
+  	at org.gradle.executio
+n.plan.DefaultPlanExecuto
+r$ExecutorWorker.run(Defa
+ultPlanExecutor.java:376)
+  	at org.gradle.internal
+.concurrent.ExecutorPolic
+y$CatchAndRecordFailures.
+onExecute(ExecutorPolicy.
+java:64)
+  	at org.gradle.internal
+.concurrent.AbstractManag
+edExecutor$1.run(Abstract
+ManagedExecutor.java:48)
+  	at java.base/java.util
+.concurrent.ThreadPoolExe
+cutor.runWorker(Unknown 
+Source)
+  	at java.base/java.util
+.concurrent.ThreadPoolExe
+cutor$Worker.run(Unknown 
+Source)
+  	at java.base/java.lang
+.Thread.run(Unknown 
+Source)
+  Caused by: com.android.
+ide.common.process.Proces
+sException: Error while 
+executing process C:\User
+s\USER\AppData\Local\Andr
+oid\sdk\cmake\3.22.1\bin\
+cmake.exe with arguments 
+{-HC:\tools\flutter\packa
+ges\flutter_tools\gradle\
+src\main\scripts -DCMAKE_
+SYSTEM_NAME=Android -DCMA
+KE_EXPORT_COMPILE_COMMAND
+S=ON -DCMAKE_SYSTEM_VERSI
+ON=22 -DANDROID_PLATFORM=
+android-22 
+-DANDROID_ABI=arm64-v8a -
+DCMAKE_ANDROID_ARCH_ABI=a
+rm64-v8a -DANDROID_NDK=C:
+\Users\USER\AppData\Local
+\Android\sdk\ndk\26.3.115
+79264 -DCMAKE_ANDROID_NDK
+=C:\Users\USER\AppData\Lo
+cal\Android\sdk\ndk\26.3.
+11579264 -DCMAKE_TOOLCHAI
+N_FILE=C:\Users\USER\AppD
+ata\Local\Android\sdk\ndk
+\26.3.11579264\build\cmak
+e\android.toolchain.cmake
+ -DCMAKE_MAKE_PROGRAM=C:\
+Users\USER\AppData\Local\
+Android\sdk\cmake\3.22.1\
+bin\ninja.exe -DCMAKE_LIB
+RARY_OUTPUT_DIRECTORY=C:\
+Users\USER\Desktop\anti\b
+uild\app\intermediates\cx
+x\Debug\25475j14\obj\arm6
+4-v8a -DCMAKE_RUNTIME_OUT
+PUT_DIRECTORY=C:\Users\US
+ER\Desktop\anti\build\app
+\intermediates\cxx\Debug\
+25475j14\obj\arm64-v8a 
+-DCMAKE_BUILD_TYPE=Debug 
+-BC:\Users\USER\Desktop\a
+nti\build\.cxx\Debug\2547
+5j14\arm64-v8a -GNinja 
+-Wno-dev 
+--no-warn-unused-cli}
+  	at com.android.build.g
+radle.internal.process.Gr
+adleProcessResult.buildPr
+ocessException(GradleProc
+essResult.java:73)
+  	at com.android.build.g
+radle.internal.process.Gr
+adleProcessResult.assertN
+ormalExitValue(GradleProc
+essResult.java:48)
+  	at com.android.build.g
+radle.internal.cxx.proces
+s.ExecuteProcessKt.execut
+e(ExecuteProcess.kt:277)
+  	... 140 more
+  Caused by: org.gradle.p
+rocess.internal.ExecExcep
+tion: Process 'command 'C
+:\Users\USER\AppData\Loca
+l\Android\sdk\cmake\3.22.
+1\bin\cmake.exe'' 
+finished with non-zero 
+exit value 1
+  	at org.gradle.process.
+internal.DefaultExecHandl
+e$ExecResultImpl.assertNo
+rmalExitValue(DefaultExec
+Handle.java:442)
+  	at com.android.build.g
+radle.internal.process.Gr
+adleProcessResult.assertN
+ormalExitValue(GradleProc
+essResult.java:46)
+  	... 141 more
+
+
+* Try:
+> Run with --stacktrace 
+option to get the stack 
+trace.
+> Run with --info or 
+--debug option to get 
+more log output.
+> Run with --scan to get 
+full insights.
+> Get more help at 
+https://help.gradle.org.
+
+BUILD FAILED in 1m 3s
+Running Gradle task 'assembleDebug'...                             64.1s
+Gradle task 
+assembleDebug failed 
+with exit code 1
